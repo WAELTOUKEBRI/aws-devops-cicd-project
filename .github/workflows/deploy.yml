@@ -1,4 +1,7 @@
+HEAD
 name: CI/CD Deployment
+name: CI/CD Deploy
+1fa3ed4 (Add CI/CD workflow with Docker Hub & Trivy scan)
 
 on:
   push:
@@ -6,16 +9,25 @@ on:
       - main
 
 jobs:
+HEAD
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repo
+
+  build_and_deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+ 1fa3ed4 (Add CI/CD workflow with Docker Hub & Trivy scan)
         uses: actions/checkout@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
+ HEAD
       - name: Build Docker image
         run: |
           docker build -t devops-demo-app:latest ./app
@@ -23,3 +35,35 @@ jobs:
       - name: Run container (for test)
         run: |
           docker run -d -p 8080:80 devops-demo-app:latest
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build Docker image
+        run: |
+          docker build -t waeltoukebri/devops-demo-app:latest .
+
+      - name: Scan Docker image with Trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+          ./trivy image waeltoukebri/devops-demo-app:latest
+
+      - name: Push Docker image
+        run: |
+          docker push waeltoukebri/devops-demo-app:latest
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_PUBLIC_IP }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            docker pull waeltoukebri/devops-demo-app:latest
+            docker stop devops-demo || true
+            docker rm devops-demo || true
+            docker run -d -p 80:80 --name devops-demo waeltoukebri/devops-demo-app:latest
+ 1fa3ed4 (Add CI/CD workflow with Docker Hub & Trivy scan)
