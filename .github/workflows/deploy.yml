@@ -14,7 +14,8 @@ jobs:
 
       - name: Install Trivy
         run: |
-          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+          echo "$PWD/bin" >> $GITHUB_PATH
           trivy --version
 
       - name: Deploy Docker on EC2
@@ -33,7 +34,7 @@ jobs:
             docker pull waeltoukebri/devops-demo-app:latest
 
             # Scan image for vulnerabilities
-            trivy image --severity HIGH,CRITICAL --exit-code 1 waeltoukebri/devops-demo-app:latest || echo "Vulnerabilities found!"
+            trivy image --severity HIGH,CRITICAL --exit-code 1 waeltoukebri/devops-demo-app:latest || echo "Vulnerabilities found"
 
             # Run container with health check
             docker run -d \
@@ -47,5 +48,6 @@ jobs:
 
             # Show running containers
             docker ps
+
             # Show health status
             docker inspect --format='{{.Name}} {{.State.Health.Status}}' devops-demo
