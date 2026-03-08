@@ -1,17 +1,14 @@
 name: Deploy DevOps Demo App
-
 on:
   push:
     branches:
       - main
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-
       - name: Deploy Docker on EC2
         uses: appleboy/ssh-action@v0.1.7
         with:
