@@ -8,16 +8,26 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
+      # Step 1: Checkout the repository
       - name: Checkout repo
         uses: actions/checkout@v3
 
+      # Step 2: Install Trivy on the runner
       - name: Install Trivy
         run: |
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
-          echo "$PWD/bin" >> $GITHUB_PATH
+          sudo mv ./bin/trivy /usr/local/bin/trivy
           trivy --version
 
+      # Step 3: Pull Docker image locally on runner and scan
+      - name: Scan Docker image with Trivy
+        run: |
+          docker pull waeltoukebri/devops-demo-app:latest
+          trivy image --severity HIGH,CRITICAL --exit-code 1 waeltoukebri/devops-demo-app:latest
+
+      # Step 4: Deploy Docker container on EC2
       - name: Deploy Docker on EC2
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -26,15 +36,12 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script: |
-            # Stop and remove old container if exists
+            # Stop & remove old container
             docker stop devops-demo || true
             docker rm devops-demo || true
 
-            # Pull the latest image
+            # Pull latest image
             docker pull waeltoukebri/devops-demo-app:latest
-
-            # Scan image for vulnerabilities
-            trivy image --severity HIGH,CRITICAL --exit-code 1 waeltoukebri/devops-demo-app:latest || echo "Vulnerabilities found"
 
             # Run container with health check
             docker run -d \
@@ -46,8 +53,6 @@ jobs:
               --health-retries=3 \
               waeltoukebri/devops-demo-app:latest
 
-            # Show running containers
+            # Show running containers and health status
             docker ps
-
-            # Show health status
             docker inspect --format='{{.Name}} {{.State.Health.Status}}' devops-demo
