@@ -9,18 +9,15 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      # 1. Checkout the repo
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v3
 
-      # 2. Set up SSH key
-      - name: Add SSH key
-        uses: webfactory/ssh-agent@v0.8.1
+      - name: Set up SSH key
+        uses: webfactory/ssh-agent@v0.8.2
         with:
           ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
-      # 3. Copy files or run commands on EC2 via SSH
-      - name: SSH and deploy Docker container
+      - name: Deploy Docker on EC2
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.EC2_PUBLIC_IP }}
@@ -28,15 +25,8 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script: |
-            # Stop and remove old container if exists
             docker stop devops-demo || true
             docker rm devops-demo || true
-
-            # Pull the latest Docker image
             docker pull waeltoukebri/devops-demo-app:latest
-
-            # Run container
             docker run -d -p 80:80 --name devops-demo waeltoukebri/devops-demo-app:latest
-
-            # Optional: show running containers
             docker ps
