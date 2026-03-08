@@ -6,11 +6,15 @@ on:
       - main
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v3
+
+      - name: List repo files (debug)
+        run: ls -la
 
       - name: Login to Docker Hub
         uses: docker/login-action@v2
@@ -20,9 +24,6 @@ jobs:
 
       - name: Build Docker image
         run: docker build -t waeltoukebri/devops-demo-app:latest ./app
-
-      - name: Debug repo structure
-        run: ls -la
 
       - name: Scan Docker image with Trivy
         run: |
