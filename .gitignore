@@ -1,10 +1,17 @@
-.terraform/
-.terraform/
- HEAD
- HEAD
+# Terraform
 *.tfstate
 *.tfstate.backup
-.terraform.lock.hcl
- 991641e (Ignore terraform cache folder to avoid large files)
 .terraform/
- a51d6db (Ignore terraform cache folder)
+.terraform.lock.hcl
+
+# Terraform providers cache
+.terraform/providers/
+
+# Docker
+*.dockerignore
+docker-compose.override.yml
+
+# Editor / OS files
+*.swp
+*.DS_Store
+*.log
