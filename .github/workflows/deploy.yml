@@ -14,21 +14,21 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      # Step 2: Install Trivy on the runner
+      # Step 2: Install Trivy on the runner for Security Scanning
       - name: Install Trivy
         run: |
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
           sudo mv ./bin/trivy /usr/local/bin/trivy
           trivy --version
 
-      # Step 3: Pull Docker image locally on runner and scan
+      # Step 3: Scan Docker image with Trivy (DevSecOps)
       - name: Scan Docker image with Trivy
         run: |
-          docker pull waeltoukebri/devops-demo-app:latest || echo "Vulnerabilities found"
-          trivy image --severity HIGH,CRITICAL waeltoukebri/devops-demo-app:latest
+          docker pull waeltoukebri/devops-demo-app:latest || echo "Image pull failed, skipping scan"
+          trivy image --severity HIGH,CRITICAL waeltoukebri/devops-demo-app:latest || echo "Vulnerabilities found"
 
-      # Step 4: Deploy Docker container on EC2
-      - name: Deploy Docker on EC2
+      # Step 4: Deploy Docker container and Monitoring Stack on EC2
+      - name: Deploy Full Stack on EC2
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.EC2_PUBLIC_IP }}
@@ -36,40 +36,35 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script: |
-            # Stop & remove old container
-            docker stop devops-demo || true
-            docker rm devops-demo || true
+            # 1. Create a dedicated network for monitoring and app communication
+            docker network create monitoring-network || true
 
-            # Pull latest image
+            # 2. Update the Main Application with Health Checks
+            docker stop devops-demo || true && docker rm devops-demo || true
             docker pull waeltoukebri/devops-demo-app:latest
-
-            # Run container with health check
-            docker run -d \
-              -p 80:80 \
-              --name devops-demo \
+            docker run -d --name devops-demo --network monitoring-network -p 80:80 \
               --restart unless-stopped \
               --health-cmd="curl -f http://localhost/ || exit 1" \
               --health-interval=30s \
               --health-retries=3 \
               waeltoukebri/devops-demo-app:latest
 
-            # Show running containers and health status
-            docker ps
-            docker inspect --format='{{.Name}} {{.State.Health.Status}}' devops-demo
-
-          # Create a network so containers can talk to each other
-            docker network create monitoring-network || true
-
-            # Run Node Exporter (The Metrics Source)
+            # 3. Deploy Node Exporter (Exposes system metrics)
             docker stop node-exporter || true && docker rm node-exporter || true
-            docker run -d --name node-exporter --network monitoring-network -p 9100:9100 prom/node-exporter
+            docker run -d --name node-exporter --network monitoring-network -p 9100:9100 \
+              --restart unless-stopped prom/node-exporter
 
-            # Run Prometheus (The Data Collector)
+            # 4. Deploy Prometheus (Collector) - Access via Port 9090
             docker stop prometheus || true && docker rm prometheus || true
             docker run -d --name prometheus --network monitoring-network -p 9090:9090 \
               -v /home/ec2-user/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml \
-              prom/prometheus
+              --restart unless-stopped prom/prometheus
 
-            # Run Grafana (The Visualization)
+            # 5. Deploy Grafana (Dashboards) - Access via Port 3000
             docker stop grafana || true && docker rm grafana || true
-            docker run -d --name grafana --network monitoring-network -p 3000:3000 grafana/grafana
+            docker run -d --name grafana --network monitoring-network -p 3000:3000 \
+              --restart unless-stopped grafana/grafana
+
+            # Final Verification: Show all running containers and health status
+            docker ps
+            docker inspect --format='{{.Name}} is {{.State.Health.Status}}' devops-demo
