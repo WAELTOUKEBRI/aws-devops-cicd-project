@@ -56,3 +56,20 @@ jobs:
             # Show running containers and health status
             docker ps
             docker inspect --format='{{.Name}} {{.State.Health.Status}}' devops-demo
+
+          # Create a network so containers can talk to each other
+            docker network create monitoring-network || true
+
+            # Run Node Exporter (The Metrics Source)
+            docker stop node-exporter || true && docker rm node-exporter || true
+            docker run -d --name node-exporter --network monitoring-network -p 9100:9100 prom/node-exporter
+
+            # Run Prometheus (The Data Collector)
+            docker stop prometheus || true && docker rm prometheus || true
+            docker run -d --name prometheus --network monitoring-network -p 9090:9090 \
+              -v /home/ec2-user/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml \
+              prom/prometheus
+
+            # Run Grafana (The Visualization)
+            docker stop grafana || true && docker rm grafana || true
+            docker run -d --name grafana --network monitoring-network -p 3000:3000 grafana/grafana
