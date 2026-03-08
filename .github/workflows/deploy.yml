@@ -1,14 +1,17 @@
 name: Deploy DevOps Demo App
+
 on:
   push:
     branches:
       - main
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
+
       - name: Deploy Docker on EC2
         uses: appleboy/ssh-action@v0.1.7
         with:
@@ -17,8 +20,24 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script: |
+            # Stop and remove old container if exists
             docker stop devops-demo || true
             docker rm devops-demo || true
+
+            # Pull the latest image
             docker pull waeltoukebri/devops-demo-app:latest
-            docker run -d -p 80:80 --name devops-demo waeltoukebri/devops-demo-app:latest
+
+            # Run container with health check
+            docker run -d \
+              -p 80:80 \
+              --name devops-demo \
+              --restart unless-stopped \
+              --health-cmd="curl -f http://localhost/ || exit 1" \
+              --health-interval=30s \
+              --health-retries=3 \
+              waeltoukebri/devops-demo-app:latest
+
+            # Show running containers
             docker ps
+            # Show health status
+            docker inspect --format='{{.Name}} {{.State.Health.Status}}' devops-demo
