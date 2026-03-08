@@ -1,5 +1,7 @@
 .terraform/
 .terraform/
+ HEAD
 *.tfstate
 *.tfstate.backup
 .terraform.lock.hcl
+ 991641e (Ignore terraform cache folder to avoid large files)
