@@ -21,6 +21,9 @@ jobs:
       - name: Build Docker image
         run: docker build -t waeltoukebri/devops-demo-app:latest ./app
 
+      - name: Debug repo structure
+        run: ls -la
+
       - name: Scan Docker image with Trivy
         run: |
           curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
