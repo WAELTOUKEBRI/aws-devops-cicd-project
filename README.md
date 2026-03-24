@@ -1,6 +1,6 @@
 <div align="center">
   <h1 align="center">🚀 AWS DevSecOps CI/CD Pipeline</h1>
-  <h3>Comprehensive Cloud-Native Deployment & Observability Stack</h3>
+  <h3>Comprehensive Cloud-Native Deployment, Security, & Observability Stack</h3>
 
   <p align="center">
     <img src="https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white" alt="AWS" />
@@ -11,126 +11,149 @@
     <img src="https://img.shields.io/badge/Grafana-F46800?style=for-the-badge&logo=grafana&logoColor=white" alt="Grafana" />
     <img src="https://img.shields.io/badge/Trivy-1B2F4E?style=for-the-badge&logo=security&logoColor=white" alt="Trivy" />
   </p>
+
+  <p align="center">
+    <i>An automated, deeply observable, and highly secure AWS deployment workflow built for modern cloud ecosystems.</i>
+  </p>
 </div>
 
 ---
 
+<div align="center">
+  <img src="assets/deployed_app.png" alt="Deployed Application UI" width="800" />
+  <p><em>Live Application Interface served via EC2</em></p>
+</div>
+
 ## 📖 Executive Summary
 
-This project implements a fully automated, end-to-end **DevSecOps lifecycle** on AWS. Moving beyond simple container deployments, this architecture showcases a resilient, secure, and observable production environment. 
+This project establishes a resilient, fully automated **DevSecOps lifecycle** on Amazon Web Services (AWS). Engineered to exceed basic container deployments, it demonstrates the seamless orchestration of an end-to-end production environment featuring **Infrastructure as Code (IaC)**, zero-downtime **CI/CD**, rigorous **security scanning**, and deep **telemetry/observability**.
 
-It leverages **Infrastructure as Code (IaC)** for reproducible cloud environments, **Continuous Integration/Continuous Deployment (CI/CD)** for zero-downtime updates, and a robust **Monitoring ecosystem** to ensure high availability and performance visibility.
-
----
-
-## 🏗️ Core Architectural Components
-
-### 1. Infrastructure as Code (IaC)
-The foundational cloud environment is codified and provisioned using **Terraform**. This ensures the entire networking layer and compute resources are version-controlled, reproducible, and scalable.
-* **VPC & Subnets:** Custom networking architecture.
-* **Security Groups:** Granular traffic control (Ports 22, 80 open).
-* **EC2 Compute:** Automatically provisioned instances with Amazon Linux 2.
-
-### 2. Automated CI/CD Pipeline
-**GitHub Actions** serves as the orchestration engine, executing automated workflows upon every code commit to the `main` branch.
-* **Environment Setup:** Runner preparation and dependency acquisition.
-* **Security Audit (DevSecOps):** Deep scanning of Docker images for CVEs (Common Vulnerabilities and Exposures) using **Trivy** prior to deployment.
-* **Automated Deployment:** Secure remote execution via SSH to update the EC2 instance, manage container lifecycles, and handle zero-downtime container replacement.
-
-### 3. Application Resiliency
-To guarantee high availability, the deployment strategy incorporates advanced container orchestration on a single node:
-* **Docker Health Checks:** Granular monitoring of application state (`curl -f http://localhost/ || exit 1`).
-* **Auto-Recovery:** Infrastructure automatically identifies and restarts unresponsive containers via `restart: unless-stopped` policies.
-* **Dedicated Networks:** A custom Docker network (`monitoring-network`) isolates component communication safely.
-
-### 4. Observability and Infrastructure Governance
-A dedicated, industry-standard monitoring stack provides real-time visibility into system health, performance, and anomalies.
-* **Metrics Collection:** **Prometheus** aggregates timeseries data scraped via **Node Exporter**.
-* **Data Visualization:** **Grafana** provides high-fidelity, interactive dashboards for CPU utilization, memory consumption, and network throughput.
-* **Cloud Alerting:** Proactive monitoring executed by **AWS CloudWatch Alarms** (e.g., `EC2_High_CPU_Alert_DevOps_Project`), dynamically reacting when critical thresholds (like CPU Utilization > 80%) are breached.
+It provides hiring managers and engineers a transparent view into my ability to build hardened, highly available cloud systems.
 
 ---
 
-## ⚙️ Technical Specifications
+## 🏛️ Core Architectural Components
 
-| Domain | Technology / Tooling |
-| :--- | :--- |
-| **Cloud Provider** | Amazon Web Services (AWS) |
-| **Infrastructure (IaC)** | Terraform, IAM, CloudWatch |
-| **Containerization** | Docker, Docker Compose / Network |
-| **CI/CD** | GitHub Actions |
-| **Security Scanning**| Trivy |
-| **Monitoring Stack** | Prometheus, Grafana, Node Exporter |
+### 1. Infrastructure as Code (Terraform)
+The foundational cloud environment is strictly codified using **Terraform**, ensuring absolute reproducibility.
+* **VPC & Subnets:** Custom networking architecture isolating workloads.
+* **Security Groups:** Granular port-level firewall control (Ports 22, 80 open).
+* **EC2 Compute:** Ephemeral Amazon Linux 2 instances dynamically created.
 
----
+<details>
+<summary><b>🖼️ View IaC & Infrastructure Evidence</b></summary>
+<br>
 
-## 🚀 Deployment Instructions
+**Terraform Plan & Apply:** Validating and deploying resources systematically.
+<div align="center">
+  <img src="assets/terraform_validate.png" alt="Terraform Validate" width="700" />
+  <img src="assets/terraform_apply.png" alt="Terraform Apply Complete" width="700" />
+  <p><em>Note the dynamic output of `server_public_ip` confirming successful provisioning.</em></p>
+</div>
 
-### Prerequisites
-1. **AWS Account** with proper IAM permissions for EC2 and VPC management.
-2. **Terraform CLI** installed on your local control machine.
-3. Configure the following **GitHub Repository Secrets**:
-   * `DOCKER_USERNAME` & `DOCKER_PASSWORD` *(Docker Hub registry authentication to prevent pull-rate limiting)*
-   * `EC2_PUBLIC_IP`: The public IPv4 address yielded by Terraform outputs.
-   * `EC2_SSH_KEY`: The private SSH key strictly matching the provisioned `aws_key_pair` (e.g., `devops_demo_key`).
-   * AWS Credentials (if programmatic CloudWatch setup is required).
+</details>
 
-### Execution
+### 2. Automated DevSecOps Pipeline (GitHub Actions)
+Continuous Integration and Deployment are completely automated via GitHub Actions, reacting instantly to main-branch pull requests or pushes.
 
-1. **Initialize & Provision Infrastructure (IaC):**
-   Navigate into the `terraform` directory to formally provision the AWS environment.
-   ```bash
-   cd terraform
-   terraform init
-   terraform validate  # (Optional: confirm configuration is strictly valid)
-   terraform apply
-   ```
-   > [!NOTE]
-   > Upon a successful apply, Terraform explicitly prints the `server_public_ip` (e.g., `35.180.33.192`) in terminal output. Update your local configuration and GitHub Secrets with this IP address.
+<details>
+<summary><b>🖼️ View CI/CD Workflow & Repository Configuration Evidence</b></summary>
+<br>
+  
+**Workflow Orchestration:**
+<div align="center">
+  <img src="assets/github_workflow_overview.png" alt="Deploy.yml Step Trace" width="700" />
+  <img src="assets/github_deploy_yml.png" alt="Deploy.yml Configuration" width="700" />
+</div>
 
-2. **Pipeline Activation:**
-   Push code changes to the `main` branch. The GitHub Actions workflow will automatically trigger, build, scan, and deploy the application.
+**Secure Credential Injection (Secrets):**
+<div align="center">
+  <img src="assets/github_secrets.png" alt="GitHub Repository Secrets" width="700" />
+  <p><em>EC2 SSH Keys and Docker Credentials are securely obfuscated.</em></p>
+</div>
 
-3. **Access Monitoring Systems:**
-   * **Application:** `http://<EC2-PUBLIC-IP>:80`
-   * **Grafana:** `http://<EC2-PUBLIC-IP>:3000` (Visualize Dashboards)
-   * **Prometheus:** `http://<EC2-PUBLIC-IP>:9090` (Query Metrics)
+**Action Logs (Full Stack Deploy):**
+<div align="center">
+  <img src="assets/deploy_full_stack.png" alt="GitHub Action Deploy Logs" width="700" />
+  <img src="assets/deploy_success.png" alt="Successful Deploy to EC2" width="700" />
+</div>
 
-4. **Verify Application Resiliency Locally (Optional):**
-   Establish a secure shell session mapping an authorized ECDSA/RSA key to inspect running daemon processes on Amazon Linux 2:
-   ```bash
-   ssh -i ~/.ssh/devops_demo_key ec2-user@<server_public_ip>
-   sudo docker ps
-   ```
+</details>
 
 ---
 
-## 🛡️ Verification and Evidence
+## 🔒 Advanced Security Posture
 
-The pipeline integrates multiple checkpoints ensuring quality, security, and stability.
+Security is "shifted left" and treated as an uncompromising layer throughout the pipeline.
 
-| Feature | Description |
-| :--- | :--- |
-| **Pipeline Integrity** | The GitHub Actions workflow demonstrates a successful execution of both security-gate and deployment logic to the remote hosts. |
-| **Security Scanning** | Trivy reports provide complete software supply chain transparency, identifying both OS and library vulnerabilities for proactive patching. |
-| **Real-Time Monitoring** | Grafana dashboards actively ingest Prometheus data points, displaying system performance intuitively. |
-| **Infrastructure Alerting** | **CloudWatch Alarms** (e.g., `EC2_High_CPU_Alert_DevOps_Project`) are meticulously configured via the AWS CLI to manage infrastructure reactively, notifying operators on high resource strain (CPU > 80%). |
+1. **Vulnerability Scanning (`Trivy`):**
+   * Before any container touches the designated EC2 environment, `Trivy` audits the OS (Alpine/Linux) and application libraries for CVEs (Common Vulnerabilities and Exposures). *The pipeline breaks immediately on CRITICAL findings.*
+2. **Identity & Access Management (IMDSv2 & IAM):**
+   * Static, hardcoded credentials are fully eradicated. Instead, the Amazon EC2 instances communicate with AWS services (like CloudWatch) utilizing **IAM Roles** and **IMDSv2 (Instance Metadata Service vX)**, securing against SSRF attacks natively via Time-To-Live authenticated tokens.
+3. **Network Isolation:** 
+   * A custom Docker bridge network (`monitoring-network`) was established so the reverse-proxies, monitoring daemons, and application communicate without exposing internal ports externally.
+4. **Hardened Shell Access:**
+   * Instances are only accessible via tightly restricted SSH mapped to ECDSA/RSA keys. No password-based authentication is permitted.
+
+<details>
+<summary><b>🖼️ View DevSecOps Scanning & Access Evidence</b></summary>
+<br>
+  
+**Trivy Vulnerability Scan Output:**
+<div align="center">
+  <img src="assets/trivy_scan.png" alt="Trivy Vulnerability Scan" width="700" />
+</div>
+
+**Secure SSH Access Validation:**
+<div align="center">
+  <img src="assets/ssh_login_fingerprint.png" alt="SSH Connection & Verification" width="700" />
+  <img src="assets/ssh_docker_ps_local.png" alt="Docker process verification via SSH" width="700" />
+</div>
+</details>
 
 ---
 
-## 🔧 Troubleshooting and Technical Challenges
+## 📊 Deep Observability & Application Resiliency
 
-### Problem: Programmatic CloudWatch Alarm Configuration
-During the automation of CloudWatch Alarms via the AWS CLI directly from the EC2 instance, the process inherently blocked programmatic access, throwing a `Credentials not found` error despite operating entirely within the AWS ecosystem.
+To guarantee Service Level Objectives (SLOs), a specialized monitoring stack captures hardware constraints and health status in real-time.
 
-### Solution: IAM Roles & AWS IMDSv2 (Security Posture)
-Instead of passing vulnerable static credentials, an **IAM Role** with `CloudWatchFullAccess` permissions was bound to the EC2 instance profile. Furthermore, the architecture adheres to strict security principles by securely interacting with the **AWS Instance Metadata Service v2 (IMDSv2)**:
+1. **Docker Health Checks:** 
+   * Native Docker daemon validation commands (`curl -f http://localhost/ || exit 1`) ensure containerized traffic routing only happens to healthy processes. The daemon executes `restart: unless-stopped` to self-heal upon application collapse.
+2. **Prometheus & Node Exporter:** 
+   * System-level telemetry (CPU, Memory, Disk Space, IOPS) is actively scraped from `node-exporter` targets by industry-standard `Prometheus`.
+3. **Grafana Dashboards:** 
+   * The metric influx is elegantly converted into high-fidelity visual displays, enabling rapid response to abnormal traffic spikes.
+
+<details>
+<summary><b>🖼️ View Monitoring Observability Evidence</b></summary>
+<br>
+
+**Prometheus Target Health Data:**
+<div align="center">
+  <img src="assets/prometheus_targets.png" alt="Prometheus Node Exporter Health" width="700" />
+</div>
+
+**Live Grafana Dashboard Engine (Node Exporter Full):**
+<div align="center">
+  <img src="assets/grafana_dashboard.png" alt="Grafana CPU/Memory Dashboard" width="700" />
+</div>
+</details>
+
+---
+
+## 🔧 Engineering Challenges & Troubleshooting
+
+### Incident: Programmatic CloudWatch Alarm Creation Blocking
+During automation attempts to create **CloudWatch Metrics Alarms** dynamically via the AWS CLI from inside the EC2 instance, the process inherently failed, throwing a `Credentials not found` error despite operating within the AWS VPC perimeter.
+
+### Resolution: Implementation of Zero-Trust IMDSv2
+Instead of passing vulnerable static AWS credentials via repository secrets, I bound an **IAM Role** (`CloudWatchFullAccess`) to the EC2 Instance Profile. Following zero-trust principles, I designed a Bash script to interface safely with **IMDSv2**:
 
 ```bash
-# 1. Generate IMDSv2 secure token
+# 1. Generate IMDSv2 secure token dynamically (Prevents SSRF)
 TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
 
-# 2. Extract specific Instance ID
+# 2. Extract specific dynamic Instance ID
 INSTANCE_ID=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id)
 
 # 3. Provision CloudWatch Alarm programmatically
@@ -147,9 +170,46 @@ aws cloudwatch put-metric-alarm \
   --evaluation-periods 1 \
   --unit Percent
 ```
-This strategy ensures zero-trust connectivity while dynamically provisioning alarms across any instantiated node.
+
+This strategy securely configures an automated trigger upon any massive load variations without risking external credential exposure.
+
+<details>
+<summary><b>🖼️ View AWS CloudWatch & Terminal Engineering Evidence</b></summary>
+<br>
+
+**Terminal: Secure Instance Query & AWS Command Execution:**
+<div align="center">
+  <img src="assets/imds_terminal.png" alt="Terminal IMDSv2 Integration" width="700" />
+</div>
+
+**AWS Console: Verifying Active CloudWatch CPU Alarms:**
+<div align="center">
+  <img src="assets/cloudwatch_alarm_list.png" alt="CloudWatch Alarm Provisioned" width="700" />
+  <img src="assets/cloudwatch_graph.png" alt="CloudWatch CPU Utilization Tracking Graph" width="700" />
+</div>
+</details>
 
 ---
+
+## ⚙️ Quick Start Deployment
+
+1. **Define Architecture:** Ensure `DOCKER_USERNAME`, `DOCKER_PASSWORD`, `EC2_SSH_KEY`, and `EC2_PUBLIC_IP` are stored in your GitHub configuration.
+2. **Provision Cloud:** 
+   ```bash
+   cd terraform
+   terraform init && terraform validate
+   terraform apply 
+   ```
+3. **Release Software:** Push commits to automatically trigger Trivy, configure `docker network create monitoring-network`, and release via GitHub Actions.
+
+---
+
 <div align="center">
-  <b>Built with ❤️ using Cloud-Native Technologies.</b>
+  <h3>✨ Crafted and Engineered by <b>Wael Toukebri</b></h3>
+  <p>
+    <a href="https://github.com/WAELTOUKEBRI">
+      <img src="https://img.shields.io/badge/GitHub-%23121011.svg?style=for-the-badge&logo=github&logoColor=white" alt="GitHub" />
+    </a>
+  </p>
+  <p>Building resilient, scalable, and secure cloud ecosystems.</p>
 </div>
