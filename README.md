@@ -19,10 +19,6 @@
 
 ---
 
-<div align="center">
-  <img src="assets/deployed_app.png" alt="Deployed Application UI" width="800" />
-  <p><em>Live Application Interface served via EC2</em></p>
-</div>
 
 ## 📖 Executive Summary
 
@@ -191,18 +187,6 @@ This strategy securely configures an automated trigger upon any massive load var
 
 ---
 
-## ⚙️ Quick Start Deployment
-
-1. **Define Architecture:** Ensure `DOCKER_USERNAME`, `DOCKER_PASSWORD`, `EC2_SSH_KEY`, and `EC2_PUBLIC_IP` are stored in your GitHub configuration.
-2. **Provision Cloud:** 
-   ```bash
-   cd terraform
-   terraform init && terraform validate
-   terraform apply 
-   ```
-3. **Release Software:** Push commits to automatically trigger Trivy, configure `docker network create monitoring-network`, and release via GitHub Actions.
-
----
 
 <div align="center">
   <h3>✨ Crafted and Engineered by <b>Wael Toukebri</b></h3>
